@@ -1,29 +1,42 @@
 import Link from 'next/link';
 import ImageGrid from '@/components/ImageGrid';
 import AlbumCard from '@/components/AlbumCard';
+import { turso } from '@/lib/db';
 
 async function getRecentImages() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/images?type=recent&limit=12`, { 
-    cache: 'no-store' 
-  });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const result = await turso.execute({
+      sql: 'SELECT * FROM images ORDER BY created_at DESC LIMIT ?',
+      args: [12],
+    });
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching recent images:', error);
+    return [];
+  }
 }
 
 async function getFeaturedImages() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/images?type=featured&limit=6`, { 
-    cache: 'no-store' 
-  });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const result = await turso.execute({
+      sql: 'SELECT * FROM images WHERE featured = 1 ORDER BY created_at DESC LIMIT ?',
+      args: [6],
+    });
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching featured images:', error);
+    return [];
+  }
 }
 
 async function getAlbums() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/albums`, { 
-    cache: 'no-store' 
-  });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const result = await turso.execute('SELECT * FROM albums ORDER BY created_at DESC');
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching albums:', error);
+    return [];
+  }
 }
 
 export default async function Home() {

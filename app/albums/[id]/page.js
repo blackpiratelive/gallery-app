@@ -1,22 +1,31 @@
 import Link from 'next/link';
 import ImageGrid from '@/components/ImageGrid';
+import { turso } from '@/lib/db';
 
 async function getAlbum(id) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/albums?id=${id}`,
-    { cache: 'no-store' }
-  );
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const result = await turso.execute({
+      sql: 'SELECT * FROM albums WHERE id = ?',
+      args: [id],
+    });
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching album:', error);
+    return null;
+  }
 }
 
 async function getAlbumImages(albumId) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/images?album=${albumId}`,
-    { cache: 'no-store' }
-  );
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const result = await turso.execute({
+      sql: 'SELECT * FROM images WHERE album_id = ? ORDER BY created_at DESC',
+      args: [albumId],
+    });
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching album images:', error);
+    return [];
+  }
 }
 
 export default async function AlbumPage({ params }) {

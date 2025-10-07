@@ -1,13 +1,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { turso } from '@/lib/db';
 
 async function getImage(id) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/images?id=${id}`,
-    { cache: 'no-store' }
-  );
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const result = await turso.execute({
+      sql: 'SELECT * FROM images WHERE id = ?',
+      args: [id],
+    });
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    return null;
+  }
 }
 
 export default async function ImagePage({ params }) {
