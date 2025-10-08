@@ -2,72 +2,42 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { turso } from '@/lib/db';
 
-async function getAlbum(id) {
+async function getImagesByTag(tag) {
   try {
-    const result = await turso.execute({
-      sql: 'SELECT * FROM albums WHERE id = ?',
-      args: [id],
+    const result = await turso.execute('SELECT * FROM images WHERE tags LIKE ? ORDER BY created_at DESC', [`%${tag}%`]);
+    // Filter to ensure exact tag match
+    return result.rows.filter(image => {
+      const tags = image.tags?.split(',').map(t => t.trim()) || [];
+      return tags.includes(tag);
     });
-    return result.rows[0] || null;
-  } catch (error) {
-    return null;
-  }
-}
-
-async function getAlbumImages(albumId) {
-  try {
-    const result = await turso.execute({
-      sql: 'SELECT * FROM images WHERE album_id = ? ORDER BY created_at DESC',
-      args: [albumId],
-    });
-    return result.rows;
   } catch (error) {
     return [];
   }
 }
 
-export default async function AlbumPage({ params }) {
-  const { id } = params;
-  const [album, images] = await Promise.all([
-    getAlbum(id),
-    getAlbumImages(id),
-  ]);
-
-  if (!album) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#000' }}>
-        <div className="text-center">
-          <p className="text-white/60 mb-4">Album not found</p>
-          <Link href="/albums" className="text-blue-400 hover:text-blue-300">
-            ← Back to Albums
-          </Link>
-        </div>
-      </div>
-    );
-  }
+export default async function TagPage({ params }) {
+  const tag = decodeURIComponent(params.tag);
+  const images = await getImagesByTag(tag);
 
   return (
     <main className="min-h-screen" style={{ background: '#000' }}>
       <header className="glass-dark border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link href="/albums" className="text-white/60 hover:text-white text-sm flex items-center gap-2 mb-2 transition-colors">
+          <Link href="/tags" className="text-white/60 hover:text-white text-sm flex items-center gap-2 mb-2 transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Albums
+            Back to Tags
           </Link>
-          <h1 className="text-3xl font-bold text-white">{album.name}</h1>
-          {album.description && (
-            <p className="text-white/60 mt-2">{album.description}</p>
-          )}
-          <p className="text-white/40 text-sm mt-2">{images.length} {images.length === 1 ? 'image' : 'images'}</p>
+          <h1 className="text-3xl font-bold text-white">#{tag}</h1>
+          <p className="text-white/60 text-sm mt-2">{images.length} {images.length === 1 ? 'image' : 'images'}</p>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {images.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-white/60">No images in this album yet</p>
+            <p className="text-white/60">No images with this tag</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
