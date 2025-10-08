@@ -7,13 +7,13 @@ export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
-    { href: '/featured', label: 'Featured' },
-    { href: '/browse', label: 'Browse' },
-    { href: '/albums', label: 'Albums' },
-    { href: '/tags', label: 'Tags' },
-    { href: '/admin', label: 'Admin' },
-  ];
-
+  { href: '/explore', label: 'Explore' },
+  { href: '/featured', label: 'Featured' },
+  { href: '/browse', label: 'Browse' },
+  { href: '/albums', label: 'Albums' },
+  { href: '/tags', label: 'Tags' },
+  { href: '/admin', label: 'Admin' },
+];
   return (
     <div className="md:hidden">
       {/* Hamburger Button */}

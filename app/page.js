@@ -119,6 +119,13 @@ export default async function Home() {
               >
                 Browse
               </Link>
+              
+                <Link 
+    href="/explore" 
+    className="text-sm text-white/60 hover:text-white transition-colors"
+  >
+    Explore
+  </Link>
               <Link 
                 href="/albums" 
                 className="text-sm text-white/60 hover:text-white transition-colors"
