@@ -8,6 +8,7 @@ export default function AdminNav() {
 
   const links = [
     { href: '/admin', label: 'Dashboard' },
+    { href: '/admin/images', label: 'Images' },
     { href: '/admin/upload', label: 'Upload' },
     { href: '/admin/albums', label: 'Albums' },
   ];

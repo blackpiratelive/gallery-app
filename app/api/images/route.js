@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { turso } from '@/lib/db';
+import { checkAuth, unauthorized } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -43,6 +45,27 @@ export async function GET(request) {
 
     const result = await turso.execute('SELECT * FROM images ORDER BY created_at DESC');
     return NextResponse.json(result.rows);
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  if (!checkAuth(request)) return unauthorized();
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  try {
+    await turso.execute({
+      sql: 'DELETE FROM images WHERE id = ?',
+      args: [id],
+    });
+
+    revalidatePath('/');
+    revalidatePath('/admin');
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
