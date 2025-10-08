@@ -14,11 +14,11 @@ export default function AdminNav() {
   ];
 
   return (
-    <nav className="border-b border-white/10">
+    <nav className="border-b border-white/10 bg-black/40 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <Link href="/" className="font-bold text-lg">
+            <Link href="/" className="font-bold text-lg text-white">
               Gallery Admin
             </Link>
             <div className="flex gap-4">
