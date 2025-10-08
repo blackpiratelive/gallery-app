@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { turso } from '@/lib/db';
 import MobileNav from '@/components/MobileNav';
+import HeroImageGrid from '@/components/HeroImageGrid';
 
 async function getFeaturedImages() {
   try {
@@ -11,6 +12,7 @@ async function getFeaturedImages() {
     });
     return result.rows;
   } catch (error) {
+    console.error('Error fetching featured:', error);
     return [];
   }
 }
@@ -36,6 +38,7 @@ async function getAlbumsWithImages() {
     
     return albumsWithImages;
   } catch (error) {
+    console.error('Error fetching albums:', error);
     return [];
   }
 }
@@ -47,25 +50,38 @@ async function getRecentImages() {
     });
     return result.rows;
   } catch (error) {
+    console.error('Error fetching recent:', error);
     return [];
   }
 }
 
 async function getRandomImagesForHero() {
   try {
+    // Get all images first
     const result = await turso.execute({
-      sql: 'SELECT * FROM images ORDER BY RANDOM() LIMIT 20',
+      sql: 'SELECT id, thumbnail_url FROM images ORDER BY created_at DESC LIMIT 50',
     });
-    // If we have fewer than 20 images, repeat them to fill the grid
-    const images = result.rows;
-    if (images.length === 0) return [];
     
-    while (images.length < 20) {
-      images.push(...result.rows.slice(0, Math.min(20 - images.length, result.rows.length)));
+    const images = result.rows;
+    
+    if (images.length === 0) {
+      console.log('No images found for hero');
+      return [];
     }
     
-    return images.slice(0, 20);
+    // Shuffle array
+    const shuffled = [...images].sort(() => Math.random() - 0.5);
+    
+    // Take first 20, or repeat if we have fewer
+    const heroImages = [];
+    while (heroImages.length < 20 && images.length > 0) {
+      heroImages.push(...shuffled.slice(0, Math.min(20 - heroImages.length, shuffled.length)));
+    }
+    
+    console.log(`Fetched ${heroImages.length} images for hero grid`);
+    return heroImages.slice(0, 20);
   } catch (error) {
+    console.error('Error fetching hero images:', error);
     return [];
   }
 }
@@ -132,27 +148,14 @@ export default async function Home() {
       {/* Hero Section with Image Grid Background */}
       <section className="relative py-32 sm:py-40 lg:py-48 overflow-hidden">
         {/* Image Grid Background */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="grid grid-cols-5 gap-2 h-full">
-            {heroImages.map((image, index) => (
-              <div key={index} className="relative aspect-square">
-                <Image
-                  src={image.thumbnail_url}
-                  alt=""
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <HeroImageGrid images={heroImages} />
 
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
 
         {/* Content */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-fade-in">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-fade-in z-10">
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight">
             A curated collection<br />of images
           </h2>
