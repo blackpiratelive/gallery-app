@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { turso } from '@/lib/db';
+import { ArrowLeft, Download, Calendar, Camera, Aperture, Zap, Sun, Clock } from 'lucide-react';
+import DownloadButton from '@/components/DownloadButton';
 
 async function getImage(id) {
   try {
@@ -20,27 +22,38 @@ export default async function ImagePage({ params }) {
   const image = await getImage(id);
 
   if (!image) {
-    return <div className="min-h-screen flex items-center justify-center">Image not found</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="glass rounded-2xl p-8 text-center">
+          <p className="text-white/60">Image not found</p>
+        </div>
+      </div>
+    );
   }
 
   const exif = image.exif_data ? JSON.parse(image.exif_data) : {};
   const tags = image.tags ? image.tags.split(',') : [];
 
   return (
-    <main className="min-h-screen">
-      <header className="border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link href="/" className="text-white/60 hover:text-white transition-colors text-sm">
-            ← Back to Gallery
+    <main className="min-h-screen pb-20">
+      {/* Header */}
+      <header className="glass-dark sticky top-0 z-50 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Link 
+            href="/" 
+            className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-medium">Back to Gallery</span>
           </Link>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Image */}
-          <div className="lg:col-span-2">
-            <div className="relative aspect-video w-full bg-white/5 rounded-lg overflow-hidden">
+          {/* Image Section */}
+          <div className="lg:col-span-2 fade-in">
+            <div className="relative aspect-video w-full glass rounded-2xl overflow-hidden shadow-2xl">
               <Image
                 src={image.full_url}
                 alt={image.title}
@@ -49,23 +62,33 @@ export default async function ImagePage({ params }) {
                 priority
               />
             </div>
+
+            {/* Download Button */}
+            <DownloadButton imageUrl={image.full_url} title={image.title} />
           </div>
 
-          {/* Metadata */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">{image.title}</h1>
+          {/* Metadata Section */}
+          <div className="space-y-6 slide-up">
+            {/* Title & Description Card */}
+            <div className="glass rounded-2xl p-6 card-hover">
+              <h1 className="text-2xl font-bold mb-3">{image.title}</h1>
               {image.description && (
-                <p className="text-white/60">{image.description}</p>
+                <p className="text-white/70 leading-relaxed">{image.description}</p>
               )}
             </div>
 
+            {/* Tags Card */}
             {tags.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-2">Tags</h3>
+              <div className="glass rounded-2xl p-6 card-hover">
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
+                  Tags
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-white/10 rounded-full text-sm">
+                    <span 
+                      key={idx} 
+                      className="px-3 py-1.5 glass rounded-full text-sm font-medium hover:bg-white/10 transition-colors"
+                    >
                       {tag.trim()}
                     </span>
                   ))}
@@ -73,45 +96,74 @@ export default async function ImagePage({ params }) {
               </div>
             )}
 
+            {/* EXIF Data Card */}
             {Object.keys(exif).length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-3">EXIF Data</h3>
-                <dl className="space-y-2 text-sm">
+              <div className="glass rounded-2xl p-6 card-hover">
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4">
+                  Camera Details
+                </h3>
+                <dl className="space-y-4">
                   {exif.Make && (
-                    <>
-                      <dt className="text-white/40">Camera</dt>
-                      <dd className="mb-3">{exif.Make} {exif.Model}</dd>
-                    </>
+                    <div className="flex items-start gap-3">
+                      <Camera className="w-5 h-5 text-white/40 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <dt className="text-xs text-white/40 mb-1">Camera</dt>
+                        <dd className="text-sm font-medium">{exif.Make} {exif.Model}</dd>
+                      </div>
+                    </div>
                   )}
                   {exif.DateTimeOriginal && (
-                    <>
-                      <dt className="text-white/40">Date Taken</dt>
-                      <dd className="mb-3">{new Date(exif.DateTimeOriginal).toLocaleDateString()}</dd>
-                    </>
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-5 h-5 text-white/40 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <dt className="text-xs text-white/40 mb-1">Date Taken</dt>
+                        <dd className="text-sm font-medium">
+                          {new Date(exif.DateTimeOriginal).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </dd>
+                      </div>
+                    </div>
                   )}
                   {exif.FocalLength && (
-                    <>
-                      <dt className="text-white/40">Focal Length</dt>
-                      <dd className="mb-3">{exif.FocalLength}mm</dd>
-                    </>
+                    <div className="flex items-start gap-3">
+                      <Zap className="w-5 h-5 text-white/40 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <dt className="text-xs text-white/40 mb-1">Focal Length</dt>
+                        <dd className="text-sm font-medium">{exif.FocalLength}mm</dd>
+                      </div>
+                    </div>
                   )}
                   {exif.FNumber && (
-                    <>
-                      <dt className="text-white/40">Aperture</dt>
-                      <dd className="mb-3">f/{exif.FNumber}</dd>
-                    </>
+                    <div className="flex items-start gap-3">
+                      <Aperture className="w-5 h-5 text-white/40 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <dt className="text-xs text-white/40 mb-1">Aperture</dt>
+                        <dd className="text-sm font-medium">f/{exif.FNumber}</dd>
+                      </div>
+                    </div>
                   )}
                   {exif.ISO && (
-                    <>
-                      <dt className="text-white/40">ISO</dt>
-                      <dd className="mb-3">{exif.ISO}</dd>
-                    </>
+                    <div className="flex items-start gap-3">
+                      <Sun className="w-5 h-5 text-white/40 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <dt className="text-xs text-white/40 mb-1">ISO</dt>
+                        <dd className="text-sm font-medium">{exif.ISO}</dd>
+                      </div>
+                    </div>
                   )}
                   {exif.ExposureTime && (
-                    <>
-                      <dt className="text-white/40">Shutter Speed</dt>
-                      <dd className="mb-3">{exif.ExposureTime}s</dd>
-                    </>
+                    <div className="flex items-start gap-3">
+                      <Clock className="w-5 h-5 text-white/40 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <dt className="text-xs text-white/40 mb-1">Shutter Speed</dt>
+                        <dd className="text-sm font-medium">{exif.ExposureTime}s</dd>
+                      </div>
+                    </div>
                   )}
                 </dl>
               </div>
