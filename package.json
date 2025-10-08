@@ -17,7 +17,8 @@
     "@aws-sdk/s3-request-presigner": "latest",
     "@vercel/blob": "latest",
     "exifr": "latest",
-    "sharp": "latest"
+    "sharp": "latest", 
+    "lucide-react": "latest"
   },
   "devDependencies": {
     "tailwindcss": "latest",
