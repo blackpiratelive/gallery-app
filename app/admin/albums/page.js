@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 
 export default function AlbumsPage() {
   const [albums, setAlbums] = useState([]);
@@ -54,19 +55,20 @@ export default function AlbumsPage() {
   };
 
   return (
-    <div>
+    <div className="fade-in">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Albums</h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-4 py-2 bg-white text-black font-medium rounded-lg hover:bg-white/90 transition-colors"
+          className="btn-glass rounded-xl px-6 py-3 font-medium flex items-center gap-2"
         >
+          <Plus className="w-5 h-5" />
           Create Album
         </button>
       </div>
 
       {showCreate && (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-6 mb-8">
+        <div className="glass rounded-2xl p-6 mb-8 slide-up">
           <form onSubmit={handleCreate} className="space-y-4">
             <input
               type="text"
@@ -74,26 +76,26 @@ export default function AlbumsPage() {
               onChange={(e) => setNewAlbum({ ...newAlbum, name: e.target.value })}
               placeholder="Album name"
               required
-              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-white/30"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/30 transition-colors"
             />
             <textarea
               value={newAlbum.description}
               onChange={(e) => setNewAlbum({ ...newAlbum, description: e.target.value })}
               placeholder="Description (optional)"
               rows={3}
-              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-white/30"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/30 transition-colors resize-none"
             />
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="px-4 py-2 bg-white text-black font-medium rounded-lg hover:bg-white/90 transition-colors"
+                className="px-6 py-3 bg-white text-black font-medium rounded-xl hover:bg-white/90 transition-colors"
               >
                 Create
               </button>
               <button
                 type="button"
                 onClick={() => setShowCreate(false)}
-                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors"
+                className="px-6 py-3 glass rounded-xl hover:bg-white/10 transition-colors"
               >
                 Cancel
               </button>
@@ -106,7 +108,7 @@ export default function AlbumsPage() {
         {albums.map((album) => (
           <div
             key={album.id}
-            className="bg-white/5 border border-white/10 rounded-lg p-6 flex justify-between items-start"
+            className="glass rounded-2xl p-6 flex justify-between items-start hover:bg-white/10 transition-all"
           >
             <div>
               <h3 className="text-xl font-semibold mb-1">{album.name}</h3>
@@ -116,9 +118,9 @@ export default function AlbumsPage() {
             </div>
             <button
               onClick={() => handleDelete(album.id)}
-              className="text-red-400 hover:text-red-300 text-sm transition-colors"
+              className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-red-400/10 rounded-lg"
             >
-              Delete
+              <Trash2 className="w-5 h-5" />
             </button>
           </div>
         ))}

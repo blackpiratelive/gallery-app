@@ -11,7 +11,13 @@ module.exports = {
         background: '#0a0a0a',
         foreground: '#ededed',
       },
+      backdropBlur: {
+        xs: '2px',
+      },
     },
   },
   plugins: [],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
 }
