@@ -14,21 +14,21 @@ export default function AdminNav() {
   ];
 
   return (
-    <nav className="border-b border-white/10 bg-black/40 backdrop-blur-xl">
+    <nav className="glass-dark border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
             <Link href="/" className="font-bold text-lg text-white">
               Gallery Admin
             </Link>
-            <div className="flex gap-4">
+            <div className="flex gap-6">
               {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={`text-sm transition-colors ${
                     pathname === link.href
-                      ? 'text-white'
+                      ? 'text-white font-semibold'
                       : 'text-white/60 hover:text-white'
                   }`}
                 >

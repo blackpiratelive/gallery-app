@@ -1,4 +1,3 @@
-import './globals.css'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -11,7 +10,61 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+      <head>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              tailwind.config = {
+                theme: {
+                  extend: {
+                    colors: {
+                      background: '#000000',
+                      foreground: '#ffffff',
+                    }
+                  }
+                }
+              }
+            `,
+          }}
+        />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              body {
+                background: linear-gradient(to bottom, #000000, #0a0a0a);
+                color: #ffffff;
+                font-family: ${inter.style.fontFamily};
+              }
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              @supports (backdrop-filter: blur(20px)) {
+                .glass {
+                  background: rgba(255, 255, 255, 0.05);
+                  backdrop-filter: blur(40px) saturate(180%);
+                  -webkit-backdrop-filter: blur(40px) saturate(180%);
+                }
+                .glass-dark {
+                  background: rgba(0, 0, 0, 0.4);
+                  backdrop-filter: blur(60px) saturate(180%);
+                  -webkit-backdrop-filter: blur(60px) saturate(180%);
+                }
+              }
+              .card-hover {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              }
+              .card-hover:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+              }
+            `,
+          }}
+        />
+      </head>
+      <body className={inter.className}>
         {children}
       </body>
     </html>
