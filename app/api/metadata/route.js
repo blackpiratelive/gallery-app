@@ -3,14 +3,45 @@ import { turso } from '@/lib/db';
 import { checkAuth, unauthorized } from '@/lib/auth';
 import { generateId } from '@/lib/utils';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
+
 export async function POST(request) {
-  if (!checkAuth(request)) return unauthorized();
-
   try {
-    const body = await request.json();
-    const id = generateId();
+    // Check auth
+    if (!checkAuth(request)) {
+      console.error('Auth check failed');
+      return unauthorized();
+    }
 
-    await turso.execute({
+    // Parse body
+    const body = await request.json();
+    console.log('Received metadata:', body);
+
+    // Validate required fields
+    if (!body.title || !body.full_url || !body.thumbnail_url) {
+      console.error('Missing required fields:', body);
+      return NextResponse.json(
+        { error: 'Missing required fields: title, full_url, thumbnail_url' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const id = generateId();
+    console.log('Generated ID:', id);
+
+    // Insert into database
+    const result = await turso.execute({
       sql: `INSERT INTO images 
             (id, title, description, full_url, thumbnail_url, album_id, featured, tags, exif_data) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -27,17 +58,30 @@ export async function POST(request) {
       ],
     });
 
-    return NextResponse.json({ id, ...body });
+    console.log('Database insert result:', result);
+
+    return NextResponse.json({ id, success: true }, { headers: corsHeaders });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Metadata save error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    
+    return NextResponse.json(
+      { 
+        error: error.message || 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
 
 export async function PUT(request) {
-  if (!checkAuth(request)) return unauthorized();
-
   try {
+    if (!checkAuth(request)) return unauthorized();
+
     const body = await request.json();
+    console.log('Updating metadata for ID:', body.id);
 
     await turso.execute({
       sql: `UPDATE images 
@@ -53,8 +97,13 @@ export async function PUT(request) {
       ],
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: corsHeaders });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Metadata update error:', error);
+    
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
