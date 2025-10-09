@@ -1,101 +1,75 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import Image from 'next/image';
 import { turso } from '@/lib/db';
+import { PresignedImg } from '@/components/PresignedImg';
 
-async function getAlbum(id) {
-  try {
-    const result = await turso.execute({
-      sql: 'SELECT * FROM albums WHERE id = ?',
-      args: [id],
-    });
-    return result.rows[0] || null;
-  } catch (error) {
-    return null;
-  }
-}
-
-async function getAlbumImages(albumId) {
-  try {
-    const result = await turso.execute({
-      sql: 'SELECT * FROM images WHERE album_id = ? ORDER BY created_at DESC',
-      args: [albumId],
-    });
-    return result.rows;
-  } catch (error) {
-    return [];
-  }
+async function getAlbumAndImages(id) {
+  const a = await turso.execute({ sql: 'SELECT * FROM albums WHERE id = ?', args: [id] });
+  const album = a.rows[0] || null;
+  const i = await turso.execute({
+    sql: 'SELECT id, title, description FROM images WHERE album_id = ? ORDER BY created_at DESC',
+    args: [id],
+  });
+  return { album, images: i.rows };
 }
 
 export default async function AlbumPage({ params }) {
-  const { id } = params;
-  const [album, images] = await Promise.all([
-    getAlbum(id),
-    getAlbumImages(id),
-  ]);
+  const cookieHeader = headers().get('cookie') || '';
+  const { album, images } = await getAlbumAndImages(params.id);
 
   if (!album) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#000' }}>
-        <div className="text-center">
-          <p className="text-white/60 mb-4">Album not found</p>
-          <Link href="/albums" className="text-blue-400 hover:text-blue-300">
-            ← Back to Albums
-          </Link>
+      <main style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: 24 }}>
+        <p style={{ opacity: .8 }}>Album not found.</p>
+        <p style={{ marginTop: 12 }}><Link href="/albums" style={{ color: '#8ab4ff' }}>← Back to Albums</Link></p>
+      </main>
+    );
+  }
+
+  const locked = !!album.password_hash && !cookieHeader.includes(`album_${params.id}=ok`);
+
+  if (locked) {
+    return (
+      <main style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: 24 }}>
+        <h1 style={{ marginBottom: 8 }}>{album.name}</h1>
+        {album.description && <p style={{ opacity: .7, marginBottom: 16 }}>{album.description}</p>}
+        <div style={{ padding: 16, border: '1px solid #222', borderRadius: 12, background: '#0f0f0f' }}>
+          <p style={{ opacity: .8 }}>This album is protected.</p>
+          <p style={{ marginTop: 12 }}>
+            <Link href={`/album/${params.id}/unlock`} style={{ color: '#8ab4ff' }}>Unlock album →</Link>
+          </p>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <main className="min-h-screen" style={{ background: '#000' }}>
-      <header className="glass-dark border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link href="/albums" className="text-white/60 hover:text-white text-sm flex items-center gap-2 mb-2 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Albums
-          </Link>
-          <h1 className="text-3xl font-bold text-white">{album.name}</h1>
-          {album.description && (
-            <p className="text-white/60 mt-2">{album.description}</p>
-          )}
-          <p className="text-white/40 text-sm mt-2">{images.length} {images.length === 1 ? 'image' : 'images'}</p>
-        </div>
+    <main style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: 24 }}>
+      <header style={{ marginBottom: 16 }}>
+        <p><Link href="/albums" style={{ color: '#8ab4ff' }}>← Back to Albums</Link></p>
+        <h1 style={{ marginTop: 8 }}>{album.name}</h1>
+        {album.description && <p style={{ opacity: .7 }}>{album.description}</p>}
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {images.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-white/60">No images in this album yet</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {images.map((image, index) => (
-              <Link
-                key={image.id}
-                href={`/image/${image.id}`}
-                className="group block animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="relative aspect-square glass border border-white/10 rounded-2xl overflow-hidden card-hover">
-                  <Image
-                    src={image.thumbnail_url}
-                    alt={image.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="font-semibold text-white truncate text-sm">{image.title}</h3>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+      {images.length === 0 ? (
+        <p style={{ opacity: .7 }}>No images in this album.</p>
+      ) : (
+        <div style={{
+          display: 'grid',
+          gap: 8,
+          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))'
+        }}>
+          {images.map((img) => (
+            <Link key={img.id} href={`/image/${img.id}`} style={{ display: 'block' }}>
+              <div style={{ aspectRatio: '1 / 1', background: '#111', border: '1px solid #222', borderRadius: 8, overflow: 'hidden' }}>
+                <PresignedImg imageId={img.id} type="thumb" alt={img.title} />
+              </div>
+              <div style={{ marginTop: 6, fontSize: 13, opacity: .9 }}>{img.title}</div>
+            </Link>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
