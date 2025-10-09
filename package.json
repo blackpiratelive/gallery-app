@@ -18,7 +18,8 @@
     "@vercel/blob": "latest",
     "exifr": "latest",
     "sharp": "latest", 
-    "lucide-react": "latest"
+    "lucide-react": "latest", 
+    "bcryptjs": "latest"
   },
   "devDependencies": {
     "tailwindcss": "latest",
