@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "latest",
+    "next": "15.5.8",
     "react": "latest",
     "react-dom": "latest",
     "@libsql/client": "latest",
@@ -17,8 +17,8 @@
     "@aws-sdk/s3-request-presigner": "latest",
     "@vercel/blob": "latest",
     "exifr": "latest",
-    "sharp": "latest", 
-    "lucide-react": "latest", 
+    "sharp": "latest",
+    "lucide-react": "latest",
     "bcryptjs": "latest"
   },
   "devDependencies": {
